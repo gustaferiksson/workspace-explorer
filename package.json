@@ -1,0 +1,196 @@
+{
+    "name": "multi-repo-workspace-explorer",
+    "displayName": "Multi-Repo Workspace Explorer",
+    "description": "Manage git repositories in your workspace with a powerful repository browser",
+    "version": "0.0.2",
+    "publisher": "gustaferiksson",
+    "author": "Gustaf Eriksson",
+    "license": "MIT",
+    "icon": "icon.png",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/gustaferiksson/workspace-manager"
+    },
+    "engines": {
+        "vscode": "^1.85.0"
+    },
+    "categories": [
+        "Other"
+    ],
+    "keywords": [
+        "git",
+        "workspace",
+        "repository",
+        "multi-root",
+        "explorer"
+    ],
+    "activationEvents": [],
+    "main": "./out/extension.js",
+    "contributes": {
+        "configuration": {
+            "title": "Git Workspace Explorer",
+            "properties": {
+                "gitWorkspaceManager.repoPaths": {
+                    "type": "array",
+                    "default": [],
+                    "description": "Base paths to scan for git repositories (e.g., ~/Repos)",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
+        "viewsContainers": {
+            "activitybar": [
+                {
+                    "id": "git-workspace-manager",
+                    "title": "Git Workspace Explorer",
+                    "icon": "$(folder-library)"
+                }
+            ]
+        },
+        "views": {
+            "git-workspace-manager": [
+                {
+                    "id": "repoBrowser",
+                    "name": "Repository Browser",
+                    "icon": "$(repo)"
+                }
+            ],
+            "explorer": [
+                {
+                    "id": "multiRepoExplorer0",
+                    "name": "Workspace Folder",
+                    "icon": "$(repo)",
+                    "when": "gitWorkspaceManager.view0.hasFolder"
+                },
+                {
+                    "id": "multiRepoExplorer1",
+                    "name": "Workspace Folder",
+                    "icon": "$(repo)",
+                    "when": "gitWorkspaceManager.view1.hasFolder"
+                },
+                {
+                    "id": "multiRepoExplorer2",
+                    "name": "Workspace Folder",
+                    "icon": "$(repo)",
+                    "when": "gitWorkspaceManager.view2.hasFolder"
+                },
+                {
+                    "id": "multiRepoExplorer3",
+                    "name": "Workspace Folder",
+                    "icon": "$(repo)",
+                    "when": "gitWorkspaceManager.view3.hasFolder"
+                },
+                {
+                    "id": "multiRepoExplorer4",
+                    "name": "Workspace Folder",
+                    "icon": "$(repo)",
+                    "when": "gitWorkspaceManager.view4.hasFolder"
+                },
+                {
+                    "id": "multiRepoExplorer5",
+                    "name": "Workspace Folder",
+                    "icon": "$(repo)",
+                    "when": "gitWorkspaceManager.view5.hasFolder"
+                },
+                {
+                    "id": "multiRepoExplorer6",
+                    "name": "Workspace Folder",
+                    "icon": "$(repo)",
+                    "when": "gitWorkspaceManager.view6.hasFolder"
+                },
+                {
+                    "id": "multiRepoExplorer7",
+                    "name": "Workspace Folder",
+                    "icon": "$(repo)",
+                    "when": "gitWorkspaceManager.view7.hasFolder"
+                },
+                {
+                    "id": "multiRepoExplorer8",
+                    "name": "Workspace Folder",
+                    "icon": "$(repo)",
+                    "when": "gitWorkspaceManager.view8.hasFolder"
+                },
+                {
+                    "id": "multiRepoExplorer9",
+                    "name": "Workspace Folder",
+                    "icon": "$(repo)",
+                    "when": "gitWorkspaceManager.view9.hasFolder"
+                }
+            ]
+        },
+        "commands": [
+            {
+                "command": "gitWorkspaceManager.addToWorkspace",
+                "title": "Add to Workspace",
+                "icon": "$(add)"
+            },
+            {
+                "command": "gitWorkspaceManager.removeFromWorkspace",
+                "title": "Remove from Workspace",
+                "icon": "$(remove)"
+            },
+            {
+                "command": "gitWorkspaceManager.openInNewWindow",
+                "title": "Open in New Window",
+                "icon": "$(window)"
+            },
+            {
+                "command": "gitWorkspaceManager.refreshRepos",
+                "title": "Refresh Repositories",
+                "icon": "$(refresh)"
+            }
+        ],
+        "menus": {
+            "view/title": [
+                {
+                    "command": "gitWorkspaceManager.refreshRepos",
+                    "when": "view == repoBrowser",
+                    "group": "navigation"
+                }
+            ],
+            "view/item/context": [
+                {
+                    "command": "gitWorkspaceManager.addToWorkspace",
+                    "when": "view == repoBrowser && viewItem == gitRepo",
+                    "group": "inline"
+                },
+                {
+                    "command": "gitWorkspaceManager.openInNewWindow",
+                    "when": "view == repoBrowser && viewItem =~ /Repo/",
+                    "group": "inline@2"
+                },
+                {
+                    "command": "gitWorkspaceManager.removeFromWorkspace",
+                    "when": "view == repoBrowser && viewItem == activeRepo",
+                    "group": "inline"
+                },
+                {
+                    "command": "gitWorkspaceManager.openInNewWindow",
+                    "when": "view == repoBrowser && viewItem =~ /Repo/",
+                    "group": "navigation"
+                }
+            ]
+        }
+    },
+    "scripts": {
+        "vscode:prepublish": "npm run compile",
+        "compile": "tsc -p ./",
+        "watch": "tsc -watch -p ./",
+        "pretest": "npm run compile && npm run lint",
+        "lint": "biome check .",
+        "lint:fix": "biome check --write .",
+        "format": "biome format --write .",
+        "test": "vscode-test"
+    },
+    "devDependencies": {
+        "@types/vscode": "^1.85.0",
+        "@types/mocha": "^10.0.6",
+        "@types/node": "18.x",
+        "@biomejs/biome": "^2.3.11",
+        "typescript": "^5.3.3",
+        "@vscode/test-cli": "^0.0.4",
+        "@vscode/test-electron": "^2.3.8"
+    }
+}
