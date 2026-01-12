@@ -5,13 +5,26 @@ import * as vscode from 'vscode';
 
 export function activate(context: vscode.ExtensionContext) {
     // Repository browser for discovering and adding repos
-    const repoBrowserProvider = new RepoBrowserProvider();
+    const repoBrowserProvider = new RepoBrowserProvider(context);
     const repoBrowserView = vscode.window.createTreeView('repoBrowser', {
         treeDataProvider: repoBrowserProvider,
         showCollapseAll: true,
     });
 
     context.subscriptions.push(repoBrowserView);
+
+    // Listen for expand/collapse events to save state
+    repoBrowserView.onDidExpandElement((e) => {
+        if (e.element instanceof FolderNode) {
+            repoBrowserProvider.onDidExpandElement(e.element);
+        }
+    });
+
+    repoBrowserView.onDidCollapseElement((e) => {
+        if (e.element instanceof FolderNode) {
+            repoBrowserProvider.onDidCollapseElement(e.element);
+        }
+    });
 
     // Manager for workspace folder views
     const workspaceViewManager = new WorkspaceViewManager();
@@ -55,6 +68,141 @@ export function activate(context: vscode.ExtensionContext) {
         vscode.commands.registerCommand('gitWorkspaceManager.refreshRepos', () => {
             repoBrowserProvider.refresh();
             vscode.window.showInformationMessage('Refreshed repositories');
+        }),
+
+        // File operations
+        vscode.commands.registerCommand('gitWorkspaceManager.renameFile', async (node?: FileNode) => {
+            const item = node || workspaceViewManager.getSelectedItem();
+            if (item?.resourceUri) {
+                const oldUri = item.resourceUri;
+                const oldName = path.basename(oldUri.fsPath);
+                const newName = await vscode.window.showInputBox({
+                    prompt: 'Enter new name',
+                    value: oldName,
+                    valueSelection: [0, oldName.lastIndexOf('.') !== -1 ? oldName.lastIndexOf('.') : oldName.length],
+                });
+
+                if (newName && newName !== oldName) {
+                    const newUri = vscode.Uri.joinPath(oldUri, '..', newName);
+                    await vscode.workspace.fs.rename(oldUri, newUri);
+                    workspaceViewManager.refreshAll();
+                }
+            }
+        }),
+
+        vscode.commands.registerCommand('gitWorkspaceManager.deleteFile', async (node?: FileNode) => {
+            const item = node || workspaceViewManager.getSelectedItem();
+            if (item?.resourceUri) {
+                const result = await vscode.window.showWarningMessage(
+                    `Are you sure you want to delete ${item.label}?`,
+                    { modal: true },
+                    'Move to Trash'
+                );
+                if (result === 'Move to Trash') {
+                    await vscode.workspace.fs.delete(item.resourceUri, { recursive: true, useTrash: true });
+                    workspaceViewManager.refreshAll();
+                }
+            }
+        }),
+
+        vscode.commands.registerCommand('gitWorkspaceManager.copyPath', (node: FileNode) => {
+            if (node?.resourceUri) {
+                vscode.env.clipboard.writeText(node.resourceUri.fsPath);
+                vscode.window.showInformationMessage('Path copied to clipboard');
+            }
+        }),
+
+        vscode.commands.registerCommand('gitWorkspaceManager.copyRelativePath', (node: FileNode) => {
+            if (node?.resourceUri) {
+                const workspaceFolder = vscode.workspace.getWorkspaceFolder(node.resourceUri);
+                if (workspaceFolder) {
+                    const relativePath = path.relative(workspaceFolder.uri.fsPath, node.resourceUri.fsPath);
+                    vscode.env.clipboard.writeText(relativePath);
+                    vscode.window.showInformationMessage('Relative path copied to clipboard');
+                }
+            }
+        }),
+
+        vscode.commands.registerCommand('gitWorkspaceManager.revealInFinder', (node: FileNode) => {
+            if (node?.resourceUri) {
+                vscode.commands.executeCommand('revealFileInOS', node.resourceUri);
+            }
+        }),
+
+        vscode.commands.registerCommand('gitWorkspaceManager.newFile', async (node: FileNode) => {
+            if (!node?.resourceUri) return;
+            const parentUri = node.isDirectory ? node.resourceUri : vscode.Uri.joinPath(node.resourceUri, '..');
+            const fileName = await vscode.window.showInputBox({ prompt: 'File name' });
+            if (fileName) {
+                const fileUri = vscode.Uri.joinPath(parentUri, fileName);
+                await vscode.workspace.fs.writeFile(fileUri, new Uint8Array());
+                await vscode.commands.executeCommand('vscode.open', fileUri);
+                workspaceViewManager.refreshAll();
+            }
+        }),
+
+        vscode.commands.registerCommand('gitWorkspaceManager.newFolder', async (node: FileNode) => {
+            if (!node?.resourceUri) return;
+            const parentUri = node.isDirectory ? node.resourceUri : vscode.Uri.joinPath(node.resourceUri, '..');
+            const folderName = await vscode.window.showInputBox({ prompt: 'Folder name' });
+            if (folderName) {
+                const folderUri = vscode.Uri.joinPath(parentUri, folderName);
+                await vscode.workspace.fs.createDirectory(folderUri);
+                workspaceViewManager.refreshAll();
+            }
+        }),
+
+        vscode.commands.registerCommand('gitWorkspaceManager.openToSide', (node: FileNode) => {
+            if (node?.resourceUri && !node.isDirectory) {
+                vscode.commands.executeCommand('vscode.open', node.resourceUri, vscode.ViewColumn.Beside);
+            }
+        }),
+
+        vscode.commands.registerCommand('gitWorkspaceManager.copy', (node: FileNode) => {
+            if (node?.resourceUri) {
+                vscode.commands.executeCommand('filesExplorer.copy', node.resourceUri);
+            }
+        }),
+
+        vscode.commands.registerCommand('gitWorkspaceManager.cut', (node: FileNode) => {
+            if (node?.resourceUri) {
+                vscode.commands.executeCommand('filesExplorer.cut', node.resourceUri);
+            }
+        }),
+
+        vscode.commands.registerCommand('gitWorkspaceManager.paste', async (node: FileNode) => {
+            if (!node?.resourceUri) return;
+            const targetUri = node.isDirectory ? node.resourceUri : vscode.Uri.joinPath(node.resourceUri, '..');
+            await vscode.commands.executeCommand('filesExplorer.paste', targetUri);
+            workspaceViewManager.refreshAll();
+        }),
+
+        vscode.commands.registerCommand('gitWorkspaceManager.openInTerminal', (node: FileNode) => {
+            if (node?.resourceUri) {
+                const terminalUri = node.isDirectory ? node.resourceUri : vscode.Uri.joinPath(node.resourceUri, '..');
+                const terminal = vscode.window.createTerminal({ cwd: terminalUri });
+                terminal.show();
+            }
+        }),
+
+        vscode.commands.registerCommand('gitWorkspaceManager.findInFolder', (node: FileNode) => {
+            if (node?.resourceUri && node.isDirectory) {
+                vscode.commands.executeCommand('workbench.action.findInFiles', {
+                    filesToInclude: node.resourceUri.fsPath,
+                });
+            }
+        }),
+
+        vscode.commands.registerCommand('gitWorkspaceManager.compareWithSelected', (node: FileNode) => {
+            if (node?.resourceUri) {
+                vscode.commands.executeCommand('selectForCompare', node.resourceUri);
+            }
+        }),
+
+        vscode.commands.registerCommand('gitWorkspaceManager.compareSelected', (node: FileNode) => {
+            if (node?.resourceUri) {
+                vscode.commands.executeCommand('compareFiles', node.resourceUri);
+            }
         })
     );
 
@@ -83,6 +231,21 @@ class WorkspaceViewManager {
         'multiRepoExplorer9',
     ];
 
+    refreshAll() {
+        for (const { provider } of this.viewPool.values()) {
+            provider.refresh();
+        }
+    }
+
+    getSelectedItem(): FileNode | undefined {
+        for (const { view } of this.viewPool.values()) {
+            if (view.selection && view.selection.length > 0) {
+                return view.selection[0];
+            }
+        }
+        return undefined;
+    }
+
     constructor() {
         // Pre-create all view pools
         for (const viewId of this.availableViewIds) {
@@ -90,19 +253,23 @@ class WorkspaceViewManager {
             const view = vscode.window.createTreeView(viewId, {
                 treeDataProvider: provider,
                 showCollapseAll: true,
+                canSelectMany: true,
             });
             view.title = '';
             view.description = 'No folder assigned';
             this.viewPool.set(viewId, { view, provider });
             this.disposables.push(view);
-            
+
             // Set initial context key to false
             const viewIndex = viewId.replace('multiRepoExplorer', '');
             vscode.commands.executeCommand('setContext', `gitWorkspaceManager.view${viewIndex}.hasFolder`, false);
         }
 
         // Initialize views for current workspace folders
-        this.updateViews();
+        // Use setTimeout to ensure context keys are set after extension activation completes
+        setTimeout(() => {
+            this.updateViews();
+        }, 100);
 
         // Listen for workspace folder changes
         this.disposables.push(
@@ -112,7 +279,7 @@ class WorkspaceViewManager {
         );
     }
 
-    private updateViews() {
+    updateViews() {
         const workspaceFolders = vscode.workspace.workspaceFolders ?? [];
         const currentFolderPaths = new Set(workspaceFolders.map((f) => f.uri.fsPath));
 
@@ -124,10 +291,14 @@ class WorkspaceViewManager {
                     poolItem.view.title = '';
                     poolItem.view.description = 'No folder assigned';
                     poolItem.provider.updateFolder(null);
-                    
+
                     // Update context key
                     const viewIndex = viewId.replace('multiRepoExplorer', '');
-                    vscode.commands.executeCommand('setContext', `gitWorkspaceManager.view${viewIndex}.hasFolder`, false);
+                    vscode.commands.executeCommand(
+                        'setContext',
+                        `gitWorkspaceManager.view${viewIndex}.hasFolder`,
+                        false
+                    );
                 }
                 this.folderPathToViewId.delete(folderPath);
             }
@@ -154,7 +325,7 @@ class WorkspaceViewManager {
                 poolItem.view.title = repoName;
                 poolItem.view.description = undefined;
                 poolItem.provider.updateFolder(folder);
-                
+
                 // Update context key
                 const viewIndex = viewId.replace('multiRepoExplorer', '');
                 vscode.commands.executeCommand('setContext', `gitWorkspaceManager.view${viewIndex}.hasFolder`, true);
@@ -237,12 +408,46 @@ class RepoBrowserProvider implements vscode.TreeDataProvider<FolderNode | RepoNo
     readonly onDidChangeTreeData: vscode.Event<FolderNode | RepoNode | EmptyStateNode | undefined | undefined> =
         this._onDidChangeTreeData.event;
 
+    private expandedFolders: Set<string>;
+    private readonly STORAGE_KEY = 'gitWorkspaceManager.expandedFolders';
+
+    constructor(private context: vscode.ExtensionContext) {
+        // Load expanded state from workspace state
+        const savedState = context.workspaceState.get<string[]>(this.STORAGE_KEY, []);
+        this.expandedFolders = new Set(savedState);
+    }
+
     refresh(): void {
         this._onDidChangeTreeData.fire(undefined);
     }
 
     getTreeItem(element: FolderNode | RepoNode | EmptyStateNode): vscode.TreeItem {
+        // Restore collapsed state for folders
+        if (element instanceof FolderNode) {
+            const isExpanded = this.expandedFolders.has(element.label);
+            element.collapsibleState = isExpanded
+                ? vscode.TreeItemCollapsibleState.Expanded
+                : vscode.TreeItemCollapsibleState.Collapsed;
+        }
         return element;
+    }
+
+    async onDidExpandElement(element: FolderNode): Promise<void> {
+        if (element instanceof FolderNode) {
+            this.expandedFolders.add(element.label);
+            await this.saveState();
+        }
+    }
+
+    async onDidCollapseElement(element: FolderNode): Promise<void> {
+        if (element instanceof FolderNode) {
+            this.expandedFolders.delete(element.label);
+            await this.saveState();
+        }
+    }
+
+    private async saveState(): Promise<void> {
+        await this.context.workspaceState.update(this.STORAGE_KEY, Array.from(this.expandedFolders));
     }
 
     async getChildren(
@@ -368,6 +573,10 @@ class FolderTreeDataProvider implements vscode.TreeDataProvider<FileNode> {
         this._onDidChangeTreeData.fire(undefined);
     }
 
+    refresh() {
+        this._onDidChangeTreeData.fire(undefined);
+    }
+
     getTreeItem(element: FileNode): vscode.TreeItem {
         return element;
     }
@@ -376,7 +585,7 @@ class FolderTreeDataProvider implements vscode.TreeDataProvider<FileNode> {
         if (!this.folder) {
             return [];
         }
-        
+
         if (!element) {
             // Root level: show files/folders in workspace folder
             const files = await vscode.workspace.fs.readDirectory(this.folder.uri);
@@ -424,7 +633,18 @@ class FileNode extends vscode.TreeItem {
     ) {
         super(label, isDirectory ? vscode.TreeItemCollapsibleState.Collapsed : vscode.TreeItemCollapsibleState.None);
         this.resourceUri = uri;
-        this.iconPath = isDirectory ? new vscode.ThemeIcon('folder') : new vscode.ThemeIcon('file');
+
+        // Set context values to enable VS Code's built-in file operations
+        this.contextValue = isDirectory ? 'folder' : 'file';
+
+        // Use theme icons
+        if (isDirectory) {
+            this.iconPath = vscode.ThemeIcon.Folder;
+        } else {
+            this.iconPath = vscode.ThemeIcon.File;
+        }
+
+        // Open file on click
         this.command = !isDirectory
             ? {
                   command: 'vscode.open',
