@@ -63,24 +63,32 @@ export function activate(context: vscode.ExtensionContext) {
             }
         }),
 
-        vscode.commands.registerCommand('multiRepoWorkspaceExplorer.removeFromWorkspace', async (node: RepoNode | ActiveWorkspaceRepoNode) => {
-            if (node?.repoPath) {
-                const folderIndex = vscode.workspace.workspaceFolders?.findIndex((f) => f.uri.fsPath === node.repoPath);
-                if (folderIndex !== undefined && folderIndex !== -1) {
-                    vscode.workspace.updateWorkspaceFolders(folderIndex, 1);
-                    repoBrowserProvider.refresh();
-                    activeWorkspaceProvider.refresh();
-                    vscode.window.showInformationMessage(`Removed ${node.label} from workspace`);
+        vscode.commands.registerCommand(
+            'multiRepoWorkspaceExplorer.removeFromWorkspace',
+            async (node: RepoNode | ActiveWorkspaceRepoNode) => {
+                if (node?.repoPath) {
+                    const folderIndex = vscode.workspace.workspaceFolders?.findIndex(
+                        (f) => f.uri.fsPath === node.repoPath
+                    );
+                    if (folderIndex !== undefined && folderIndex !== -1) {
+                        vscode.workspace.updateWorkspaceFolders(folderIndex, 1);
+                        repoBrowserProvider.refresh();
+                        activeWorkspaceProvider.refresh();
+                        vscode.window.showInformationMessage(`Removed ${node.label} from workspace`);
+                    }
                 }
             }
-        }),
+        ),
 
-        vscode.commands.registerCommand('multiRepoWorkspaceExplorer.openInNewWindow', async (node: RepoNode | ActiveWorkspaceRepoNode) => {
-            if (node?.repoPath) {
-                const uri = vscode.Uri.file(node.repoPath);
-                await vscode.commands.executeCommand('vscode.openFolder', uri, true);
+        vscode.commands.registerCommand(
+            'multiRepoWorkspaceExplorer.openInNewWindow',
+            async (node: RepoNode | ActiveWorkspaceRepoNode) => {
+                if (node?.repoPath) {
+                    const uri = vscode.Uri.file(node.repoPath);
+                    await vscode.commands.executeCommand('vscode.openFolder', uri, true);
+                }
             }
-        }),
+        ),
 
         vscode.commands.registerCommand('multiRepoWorkspaceExplorer.refreshRepos', () => {
             repoBrowserProvider.refresh();
@@ -95,20 +103,20 @@ export function activate(context: vscode.ExtensionContext) {
         vscode.commands.registerCommand('multiRepoWorkspaceExplorer.addToFavorites', async (node: RepoNode) => {
             if (node?.repoPath) {
                 const groups = await favoritesProvider.getGroups();
-                
+
                 const items = [
                     { label: 'Ungrouped', value: null, iconPath: new vscode.ThemeIcon('star-empty') },
-                    ...groups.map(g => ({ 
-                        label: g, 
+                    ...groups.map((g) => ({
+                        label: g,
                         value: g,
-                        iconPath: new vscode.ThemeIcon('folder')
-                    }))
+                        iconPath: new vscode.ThemeIcon('folder'),
+                    })),
                 ];
-                
+
                 const selected = await vscode.window.showQuickPick(items, {
-                    placeHolder: `Add ${node.label} to favorites`
+                    placeHolder: `Add ${node.label} to favorites`,
                 });
-                
+
                 if (selected !== undefined) {
                     if (selected.value === null) {
                         await favoritesProvider.addRepoToFavorites(node.repoPath, node.label);
@@ -124,18 +132,18 @@ export function activate(context: vscode.ExtensionContext) {
         vscode.commands.registerCommand('multiRepoWorkspaceExplorer.addToFavoritesInGroup', async (node: RepoNode) => {
             if (node?.repoPath) {
                 const groups = await favoritesProvider.getGroups();
-                
+
                 if (groups.length === 0) {
                     vscode.window.showInformationMessage('No groups exist. Create a group first.');
                     return;
                 }
-                
-                const items = groups.map(g => ({ label: g, value: g }));
-                
+
+                const items = groups.map((g) => ({ label: g, value: g }));
+
                 const selected = await vscode.window.showQuickPick(items, {
-                    placeHolder: 'Select a group to add to'
+                    placeHolder: 'Select a group to add to',
                 });
-                
+
                 if (selected) {
                     await favoritesProvider.addRepoToGroup(node.repoPath, node.label, selected.value);
                     vscode.window.showInformationMessage(`Added ${node.label} to ${selected.value}`);
@@ -143,12 +151,15 @@ export function activate(context: vscode.ExtensionContext) {
             }
         }),
 
-        vscode.commands.registerCommand('multiRepoWorkspaceExplorer.removeFromFavorites', async (node: FavoriteRepoNode) => {
-            if (node?.repoPath) {
-                await favoritesProvider.removeRepoFromFavorites(node.repoPath, node.groupName);
-                vscode.window.showInformationMessage(`Removed ${node.label} from favorites`);
+        vscode.commands.registerCommand(
+            'multiRepoWorkspaceExplorer.removeFromFavorites',
+            async (node: FavoriteRepoNode) => {
+                if (node?.repoPath) {
+                    await favoritesProvider.removeRepoFromFavorites(node.repoPath, node.groupName);
+                    vscode.window.showInformationMessage(`Removed ${node.label} from favorites`);
+                }
             }
-        }),
+        ),
 
         vscode.commands.registerCommand('multiRepoWorkspaceExplorer.createGroup', async () => {
             const groupName = await vscode.window.showInputBox({
@@ -191,21 +202,16 @@ export function activate(context: vscode.ExtensionContext) {
         vscode.commands.registerCommand('multiRepoWorkspaceExplorer.moveToGroup', async (node: FavoriteRepoNode) => {
             if (node?.repoPath) {
                 const groups = await favoritesProvider.getGroups();
-                const items = [
-                    { label: '(Ungrouped)', value: null },
-                    ...groups.map(g => ({ label: g, value: g }))
-                ];
-                
+                const items = [{ label: '(Ungrouped)', value: null }, ...groups.map((g) => ({ label: g, value: g }))];
+
                 const selected = await vscode.window.showQuickPick(items, {
-                    placeHolder: 'Select a group'
+                    placeHolder: 'Select a group',
                 });
-                
+
                 if (selected !== undefined) {
                     await favoritesProvider.moveRepoToGroup(node.repoPath, node.label, selected.value);
                     vscode.window.showInformationMessage(
-                        selected.value 
-                            ? `Moved ${node.label} to ${selected.value}` 
-                            : `Moved ${node.label} to ungrouped`
+                        selected.value ? `Moved ${node.label} to ${selected.value}` : `Moved ${node.label} to ungrouped`
                     );
                 }
             }
@@ -221,10 +227,10 @@ export function activate(context: vscode.ExtensionContext) {
 
                 // Create a temporary workspace file with all repos
                 const workspaceConfig = {
-                    folders: repos.map(repo => ({
+                    folders: repos.map((repo) => ({
                         path: repo.path,
-                        name: repo.name
-                    }))
+                        name: repo.name,
+                    })),
                 };
 
                 // Write to a temporary file
@@ -236,31 +242,32 @@ export function activate(context: vscode.ExtensionContext) {
             }
         }),
 
-        vscode.commands.registerCommand('multiRepoWorkspaceExplorer.replaceWorkspaceWithGroup', async (node: GroupNode) => {
-            if (node?.repos) {
-                const repos = node.repos;
-                if (repos.length === 0) {
-                    vscode.window.showInformationMessage('Group is empty');
-                    return;
+        vscode.commands.registerCommand(
+            'multiRepoWorkspaceExplorer.replaceWorkspaceWithGroup',
+            async (node: GroupNode) => {
+                if (node?.repos) {
+                    const repos = node.repos;
+                    if (repos.length === 0) {
+                        vscode.window.showInformationMessage('Group is empty');
+                        return;
+                    }
+
+                    // Remove all current workspace folders and add all repos in one call
+                    const currentFolderCount = vscode.workspace.workspaceFolders?.length ?? 0;
+                    const foldersToAdd = repos.map((repo) => ({
+                        uri: vscode.Uri.file(repo.path),
+                        name: repo.name,
+                    }));
+
+                    vscode.workspace.updateWorkspaceFolders(0, currentFolderCount, ...foldersToAdd);
+
+                    repoBrowserProvider.refresh();
+                    vscode.window.showInformationMessage(
+                        `Replaced workspace with ${repos.length} repositories from ${node.groupName}`
+                    );
                 }
-
-                // Remove all current workspace folders and add all repos in one call
-                const currentFolderCount = vscode.workspace.workspaceFolders?.length ?? 0;
-                const foldersToAdd = repos.map(repo => ({
-                    uri: vscode.Uri.file(repo.path),
-                    name: repo.name
-                }));
-
-                vscode.workspace.updateWorkspaceFolders(
-                    0,
-                    currentFolderCount,
-                    ...foldersToAdd
-                );
-
-                repoBrowserProvider.refresh();
-                vscode.window.showInformationMessage(`Replaced workspace with ${repos.length} repositories from ${node.groupName}`);
             }
-        }),
+        ),
 
         vscode.commands.registerCommand('multiRepoWorkspaceExplorer.refreshFavorites', () => {
             favoritesProvider.refresh();
@@ -410,10 +417,10 @@ export function activate(context: vscode.ExtensionContext) {
 }
 
 class ActiveWorkspaceProvider implements vscode.TreeDataProvider<ActiveWorkspaceRepoNode> {
-    private _onDidChangeTreeData: vscode.EventEmitter<ActiveWorkspaceRepoNode | undefined> =
-        new vscode.EventEmitter<ActiveWorkspaceRepoNode | undefined>();
-    readonly onDidChangeTreeData: vscode.Event<ActiveWorkspaceRepoNode | undefined> =
-        this._onDidChangeTreeData.event;
+    private _onDidChangeTreeData: vscode.EventEmitter<ActiveWorkspaceRepoNode | undefined> = new vscode.EventEmitter<
+        ActiveWorkspaceRepoNode | undefined
+    >();
+    readonly onDidChangeTreeData: vscode.Event<ActiveWorkspaceRepoNode | undefined> = this._onDidChangeTreeData.event;
 
     refresh() {
         this._onDidChangeTreeData.fire(undefined);
@@ -425,7 +432,7 @@ class ActiveWorkspaceProvider implements vscode.TreeDataProvider<ActiveWorkspace
 
     async getChildren(): Promise<ActiveWorkspaceRepoNode[]> {
         const workspaceFolders = vscode.workspace.workspaceFolders ?? [];
-        return workspaceFolders.map(folder => {
+        return workspaceFolders.map((folder) => {
             const repoName = getRepoName(folder.uri.fsPath);
             return new ActiveWorkspaceRepoNode(repoName, folder.uri.fsPath);
         });
@@ -492,7 +499,11 @@ class WorkspaceViewManager {
 
             // Set initial context key to false
             const viewIndex = viewId.replace('multiRepoExplorer', '');
-            vscode.commands.executeCommand('setContext', `multiRepoWorkspaceExplorer.view${viewIndex}.hasFolder`, false);
+            vscode.commands.executeCommand(
+                'setContext',
+                `multiRepoWorkspaceExplorer.view${viewIndex}.hasFolder`,
+                false
+            );
         }
 
         // Initialize views for current workspace folders
@@ -558,7 +569,11 @@ class WorkspaceViewManager {
 
                 // Update context key
                 const viewIndex = viewId.replace('multiRepoExplorer', '');
-                vscode.commands.executeCommand('setContext', `multiRepoWorkspaceExplorer.view${viewIndex}.hasFolder`, true);
+                vscode.commands.executeCommand(
+                    'setContext',
+                    `multiRepoWorkspaceExplorer.view${viewIndex}.hasFolder`,
+                    true
+                );
             }
         }
     }
@@ -790,14 +805,18 @@ interface FavoritesState {
     groups: FavoriteGroup[];
 }
 
-class FavoritesProvider implements vscode.TreeDataProvider<GroupNode | FavoriteRepoNode>, vscode.TreeDragAndDropController<GroupNode | FavoriteRepoNode> {
-    private _onDidChangeTreeData: vscode.EventEmitter<GroupNode | FavoriteRepoNode | undefined> = 
+class FavoritesProvider
+    implements
+        vscode.TreeDataProvider<GroupNode | FavoriteRepoNode>,
+        vscode.TreeDragAndDropController<GroupNode | FavoriteRepoNode>
+{
+    private _onDidChangeTreeData: vscode.EventEmitter<GroupNode | FavoriteRepoNode | undefined> =
         new vscode.EventEmitter<GroupNode | FavoriteRepoNode | undefined>();
-    readonly onDidChangeTreeData: vscode.Event<GroupNode | FavoriteRepoNode | undefined> = 
+    readonly onDidChangeTreeData: vscode.Event<GroupNode | FavoriteRepoNode | undefined> =
         this._onDidChangeTreeData.event;
 
     private readonly storageKey = 'multiRepoWorkspaceExplorer.favorites';
-    
+
     // Drag and drop support
     dropMimeTypes = ['application/vnd.code.tree.favoriteRepos', 'application/vnd.code.tree.favoriteGroups'];
     dragMimeTypes = ['application/vnd.code.tree.favoriteRepos', 'application/vnd.code.tree.favoriteGroups'];
@@ -810,13 +829,13 @@ class FavoritesProvider implements vscode.TreeDataProvider<GroupNode | FavoriteR
 
     private async getState(): Promise<FavoritesState> {
         const state: FavoritesState = this.context.globalState.get(this.storageKey, { ungrouped: [], groups: [] });
-        
+
         // Clean up any invalid entries (repos without path property)
         state.ungrouped = state.ungrouped.filter((r: FavoriteRepo) => r?.path && r?.name);
         for (const group of state.groups) {
             group.repos = group.repos.filter((r: FavoriteRepo) => r?.path && r?.name);
         }
-        
+
         return state;
     }
 
@@ -827,37 +846,37 @@ class FavoritesProvider implements vscode.TreeDataProvider<GroupNode | FavoriteR
 
     async addRepoToFavorites(repoPath: string, repoName: string): Promise<void> {
         const state = await this.getState();
-        
+
         // Check if already exists in ungrouped
-        if (state.ungrouped.some(r => r.path === repoPath)) {
+        if (state.ungrouped.some((r) => r.path === repoPath)) {
             vscode.window.showWarningMessage('Repository is already in ungrouped favorites');
             return;
         }
-        
+
         state.ungrouped.push({ name: repoName, path: repoPath });
         await this.setState(state);
     }
 
     async removeRepoFromFavorites(repoPath: string, groupName: string | null): Promise<void> {
         const state = await this.getState();
-        
+
         if (groupName === null) {
             // Remove from ungrouped - only remove first instance
-            const index = state.ungrouped.findIndex(r => r.path === repoPath);
+            const index = state.ungrouped.findIndex((r) => r.path === repoPath);
             if (index !== -1) {
                 state.ungrouped.splice(index, 1);
             }
         } else {
             // Remove from specific group - only remove first instance
-            const group = state.groups.find(g => g.name === groupName);
+            const group = state.groups.find((g) => g.name === groupName);
             if (group) {
-                const index = group.repos.findIndex(r => r.path === repoPath);
+                const index = group.repos.findIndex((r) => r.path === repoPath);
                 if (index !== -1) {
                     group.repos.splice(index, 1);
                 }
             }
         }
-        
+
         await this.setState(state);
     }
 
@@ -869,8 +888,8 @@ class FavoritesProvider implements vscode.TreeDataProvider<GroupNode | FavoriteR
 
     async createGroup(groupName: string): Promise<void> {
         const state = await this.getState();
-        
-        if (state.groups.some(g => g.name === groupName)) {
+
+        if (state.groups.some((g) => g.name === groupName)) {
             vscode.window.showWarningMessage('Group already exists');
             return;
         }
@@ -881,16 +900,16 @@ class FavoritesProvider implements vscode.TreeDataProvider<GroupNode | FavoriteR
 
     async deleteGroup(groupName: string): Promise<void> {
         const state = await this.getState();
-        
+
         // Simply remove the group (repos are deleted with it)
-        state.groups = state.groups.filter(g => g.name !== groupName);
+        state.groups = state.groups.filter((g) => g.name !== groupName);
         await this.setState(state);
     }
 
     async renameGroup(oldName: string, newName: string): Promise<void> {
         const state = await this.getState();
-        
-        const group = state.groups.find(g => g.name === oldName);
+
+        const group = state.groups.find((g) => g.name === oldName);
         if (group) {
             group.name = newName;
             await this.setState(state);
@@ -899,120 +918,128 @@ class FavoritesProvider implements vscode.TreeDataProvider<GroupNode | FavoriteR
 
     async getGroups(): Promise<string[]> {
         const state = await this.getState();
-        return state.groups.map(g => g.name);
+        return state.groups.map((g) => g.name);
     }
 
     async moveRepoToGroup(repoPath: string, repoName: string, groupName: string | null): Promise<void> {
         const state = await this.getState();
-        
+
         // Remove from current location
-        state.ungrouped = state.ungrouped.filter(r => r.path !== repoPath);
+        state.ungrouped = state.ungrouped.filter((r) => r.path !== repoPath);
         for (const group of state.groups) {
-            group.repos = group.repos.filter(r => r.path !== repoPath);
+            group.repos = group.repos.filter((r) => r.path !== repoPath);
         }
-        
+
         // Add to new location
         if (groupName == null) {
             state.ungrouped.push({ name: repoName, path: repoPath });
         } else {
-            const group = state.groups.find(g => g.name === groupName);
+            const group = state.groups.find((g) => g.name === groupName);
             if (group) {
                 group.repos.push({ name: repoName, path: repoPath });
             }
         }
-        
+
         await this.setState(state);
     }
 
     async addRepoToGroup(repoPath: string, repoName: string, groupName: string): Promise<void> {
         const state = await this.getState();
-        
-        const group = state.groups.find(g => g.name === groupName);
+
+        const group = state.groups.find((g) => g.name === groupName);
         if (group) {
             // Check if repo already exists in this specific group
-            if (group.repos.some(r => r.path === repoPath)) {
+            if (group.repos.some((r) => r.path === repoPath)) {
                 vscode.window.showWarningMessage(`Repository is already in ${groupName}`);
                 return;
             }
-            
+
             group.repos.push({ name: repoName, path: repoPath });
             await this.setState(state);
         }
     }
 
     // Drag and drop implementation
-    async handleDrag(source: (GroupNode | FavoriteRepoNode)[], dataTransfer: vscode.DataTransfer, _token: vscode.CancellationToken): Promise<void> {
-        const repoNodes = source.filter(item => item instanceof FavoriteRepoNode) as FavoriteRepoNode[];
-        const groupNodes = source.filter(item => item instanceof GroupNode) as GroupNode[];
-        
+    async handleDrag(
+        source: (GroupNode | FavoriteRepoNode)[],
+        dataTransfer: vscode.DataTransfer,
+        _token: vscode.CancellationToken
+    ): Promise<void> {
+        const repoNodes = source.filter((item) => item instanceof FavoriteRepoNode) as FavoriteRepoNode[];
+        const groupNodes = source.filter((item) => item instanceof GroupNode) as GroupNode[];
+
         if (repoNodes.length > 0) {
-            const data = repoNodes.map(node => ({
+            const data = repoNodes.map((node) => ({
                 name: node.label,
-                path: node.repoPath
+                path: node.repoPath,
             }));
             dataTransfer.set('application/vnd.code.tree.favoriteRepos', new vscode.DataTransferItem(data));
         }
-        
+
         if (groupNodes.length > 0) {
-            const data = groupNodes.map(node => node.groupName);
+            const data = groupNodes.map((node) => node.groupName);
             dataTransfer.set('application/vnd.code.tree.favoriteGroups', new vscode.DataTransferItem(data));
         }
     }
 
-    async handleDrop(target: GroupNode | FavoriteRepoNode | undefined, dataTransfer: vscode.DataTransfer, _token: vscode.CancellationToken): Promise<void> {
+    async handleDrop(
+        target: GroupNode | FavoriteRepoNode | undefined,
+        dataTransfer: vscode.DataTransfer,
+        _token: vscode.CancellationToken
+    ): Promise<void> {
         const reposTransfer = dataTransfer.get('application/vnd.code.tree.favoriteRepos');
         const groupsTransfer = dataTransfer.get('application/vnd.code.tree.favoriteGroups');
-            
-            // Handle group reordering
-            if (groupsTransfer) {
-                const groupNames = groupsTransfer.value as string[];
-                const state = await this.getState();
-                
-                // Only allow dropping at root level or on another group (for reordering)
-                let targetIndex = 0;
-                if (target instanceof GroupNode) {
-                    targetIndex = state.groups.findIndex(g => g.name === target.groupName);
-                    if (targetIndex === -1) targetIndex = 0;
-                } else if (target instanceof FavoriteRepoNode) {
-                    // Don't allow dropping groups on repos
-                    return;
-                }
-                
-                // Remove the dragged groups and reinsert at target position
-                const movedGroups = state.groups.filter(g => groupNames.includes(g.name));
-                state.groups = state.groups.filter(g => !groupNames.includes(g.name));
-                state.groups.splice(targetIndex, 0, ...movedGroups);
-                
-                await this.setState(state);
+
+        // Handle group reordering
+        if (groupsTransfer) {
+            const groupNames = groupsTransfer.value as string[];
+            const state = await this.getState();
+
+            // Only allow dropping at root level or on another group (for reordering)
+            let targetIndex = 0;
+            if (target instanceof GroupNode) {
+                targetIndex = state.groups.findIndex((g) => g.name === target.groupName);
+                if (targetIndex === -1) targetIndex = 0;
+            } else if (target instanceof FavoriteRepoNode) {
+                // Don't allow dropping groups on repos
                 return;
             }
-            
-            // Handle repo movement
-            if (reposTransfer) {
-                const repos = reposTransfer.value as { name: string; path: string }[];
-                
-                // Don't allow dropping onto root or into positions that would create invalid structures
-                let targetGroup: string | null = null;
-                if (target instanceof GroupNode) {
-                    targetGroup = target.groupName;
-                } else if (target instanceof FavoriteRepoNode) {
-                    // Find which group this repo belongs to
-                    const state = await this.getState();
-                    for (const group of state.groups) {
-                        if (group.repos.some(r => r.path === target.repoPath)) {
-                            targetGroup = group.name;
-                            break;
-                        }
+
+            // Remove the dragged groups and reinsert at target position
+            const movedGroups = state.groups.filter((g) => groupNames.includes(g.name));
+            state.groups = state.groups.filter((g) => !groupNames.includes(g.name));
+            state.groups.splice(targetIndex, 0, ...movedGroups);
+
+            await this.setState(state);
+            return;
+        }
+
+        // Handle repo movement
+        if (reposTransfer) {
+            const repos = reposTransfer.value as { name: string; path: string }[];
+
+            // Don't allow dropping onto root or into positions that would create invalid structures
+            let targetGroup: string | null = null;
+            if (target instanceof GroupNode) {
+                targetGroup = target.groupName;
+            } else if (target instanceof FavoriteRepoNode) {
+                // Find which group this repo belongs to
+                const state = await this.getState();
+                for (const group of state.groups) {
+                    if (group.repos.some((r) => r.path === target.repoPath)) {
+                        targetGroup = group.name;
+                        break;
                     }
                 }
-                // If target is undefined, drop to ungrouped (targetGroup stays null)
+            }
+            // If target is undefined, drop to ungrouped (targetGroup stays null)
 
-                // Move all repos to target group
-                for (const repo of repos) {
-                    await this.moveRepoToGroup(repo.path, repo.name, targetGroup);
-                }
+            // Move all repos to target group
+            for (const repo of repos) {
+                await this.moveRepoToGroup(repo.path, repo.name, targetGroup);
             }
         }
+    }
 
     getTreeItem(element: GroupNode | FavoriteRepoNode): vscode.TreeItem {
         return element;
@@ -1039,7 +1066,7 @@ class FavoritesProvider implements vscode.TreeDataProvider<GroupNode | FavoriteR
 
         if (element instanceof GroupNode) {
             // Show repos in group
-            return element.repos.map(repo => new FavoriteRepoNode(repo.name, repo.path, element.groupName));
+            return element.repos.map((repo) => new FavoriteRepoNode(repo.name, repo.path, element.groupName));
         }
 
         return [];
@@ -1065,9 +1092,10 @@ class FavoriteRepoNode extends vscode.TreeItem {
         public readonly groupName: string | null = null
     ) {
         super(label, vscode.TreeItemCollapsibleState.None);
-        this.iconPath = groupName !== null
-            ? new vscode.ThemeIcon('repo')
-            : new vscode.ThemeIcon('star-full', new vscode.ThemeColor('charts.yellow'));
+        this.iconPath =
+            groupName !== null
+                ? new vscode.ThemeIcon('repo')
+                : new vscode.ThemeIcon('star-full', new vscode.ThemeColor('charts.yellow'));
         this.contextValue = 'favoriteRepo';
         this.tooltip = repoPath;
     }
@@ -1122,11 +1150,7 @@ class FolderTreeDataProvider implements vscode.TreeDataProvider<FileNode> {
             return files
                 .map(
                     ([name, type]) =>
-                        new FileNode(
-                            name,
-                            vscode.Uri.joinPath(folderUri, name),
-                            type === vscode.FileType.Directory
-                        )
+                        new FileNode(name, vscode.Uri.joinPath(folderUri, name), type === vscode.FileType.Directory)
                 )
                 .sort((a, b) => {
                     // Folders first, then files
