@@ -2,7 +2,7 @@
     "name": "multi-repo-workspace-explorer",
     "displayName": "Multi-Repo Workspace Explorer",
     "description": "Manage git repositories in your workspace with a powerful repository browser",
-    "version": "0.0.7",
+    "version": "0.0.8",
     "publisher": "gustaferiksson",
     "author": "Gustaf Eriksson",
     "license": "MIT",
