@@ -50,12 +50,12 @@ code --extensionDevelopmentPath=/Users/gustaf/Repos/Gustaf/workspace-explorer
 ```bash
 npm run compile
 vsce package
-# Creates: workspace-manager-0.0.1.vsix
+# Creates: multi-repo-workspace-explorer-0.0.1.vsix
 ```
 
 ### Step 3: Test the VSIX Package
 ```bash
-code --install-extension workspace-manager-0.0.1.vsix
+code --install-extension multi-repo-workspace-explorer-0.0.1.vsix
 ```
 
 ### Step 4: Publish to Marketplace
@@ -71,7 +71,7 @@ vsce publish
 
 ### Setup GitHub Secrets
 
-1. Go to your GitHub repo: https://github.com/gustaferiksson/workspace-manager
+1. Go to your GitHub repo: https://github.com/gustaferiksson/workspace-explorer
 2. Click **Settings** → **Secrets and variables** → **Actions**
 3. Click **New repository secret**
 4. Add secret:
@@ -113,18 +113,18 @@ Every push to `main` or pull request will:
 ## Post-Publishing
 
 ### Update Extension on VS Code Marketplace
-- Your extension page: https://marketplace.visualstudio.com/items?itemName=gustaferiksson.workspace-manager
+- Your extension page: https://marketplace.visualstudio.com/items?itemName=gustaferiksson.multi-repo-workspace-explorer
 - Add screenshots, update description, etc.
 
 ### Install Published Extension
 ```bash
 # In VS Code
 # 1. Open Extensions view (Cmd+Shift+X)
-# 2. Search for "Git Workspace Explorer"
+# 2. Search for "Multi-Repo Workspace Explorer"
 # 3. Click Install
 
 # Or via command line:
-code --install-extension gustaferiksson.workspace-manager
+code --install-extension gustaferiksson.multi-repo-workspace-explorer
 ```
 
 ## Version Bumping
@@ -168,5 +168,5 @@ vsce publish patch  # or minor, major
 vsce publish 0.1.0
 
 # Unpublish (careful!)
-vsce unpublish gustaferiksson.workspace-manager
+vsce unpublish gustaferiksson.multi-repo-workspace-explorer
 ```

@@ -12,7 +12,7 @@
         "url": "https://github.com/gustaferiksson/workspace-explorer"
     },
     "engines": {
-        "vscode": "^1.85.0"
+        "vscode": "^1.89.0"
     },
     "categories": [
         "Other"
@@ -28,9 +28,9 @@
     "main": "./out/extension.js",
     "contributes": {
         "configuration": {
-            "title": "Git Workspace Explorer",
+            "title": "Multi-Repo Workspace Explorer",
             "properties": {
-                "gitWorkspaceManager.repoPaths": {
+                "multiRepoWorkspaceExplorer.repoPaths": {
                     "type": "array",
                     "default": [],
                     "description": "Base paths to scan for git repositories (e.g., ~/Repos)",
@@ -43,18 +43,28 @@
         "viewsContainers": {
             "activitybar": [
                 {
-                    "id": "git-workspace-manager",
-                    "title": "Git Workspace Explorer",
+                    "id": "multi-repo-workspace-explorer",
+                    "title": "Multi-Repo Workspace Explorer",
                     "icon": "$(folder-library)"
                 }
             ]
         },
         "views": {
-            "git-workspace-manager": [
+            "multi-repo-workspace-explorer": [
+                {
+                    "id": "activeWorkspace",
+                    "name": "Active Workspace",
+                    "icon": "$(files)"
+                },
                 {
                     "id": "repoBrowser",
                     "name": "Repository Browser",
                     "icon": "$(repo)"
+                },
+                {
+                    "id": "favoriteRepos",
+                    "name": "Favorites",
+                    "icon": "$(star-full)"
                 }
             ],
             "explorer": [
@@ -62,247 +72,363 @@
                     "id": "multiRepoExplorer0",
                     "name": "Workspace Folder",
                     "icon": "$(repo)",
-                    "when": "gitWorkspaceManager.view0.hasFolder"
+                    "when": "multiRepoWorkspaceExplorer.view0.hasFolder"
                 },
                 {
                     "id": "multiRepoExplorer1",
                     "name": "Workspace Folder",
                     "icon": "$(repo)",
-                    "when": "gitWorkspaceManager.view1.hasFolder"
+                    "when": "multiRepoWorkspaceExplorer.view1.hasFolder"
                 },
                 {
                     "id": "multiRepoExplorer2",
                     "name": "Workspace Folder",
                     "icon": "$(repo)",
-                    "when": "gitWorkspaceManager.view2.hasFolder"
+                    "when": "multiRepoWorkspaceExplorer.view2.hasFolder"
                 },
                 {
                     "id": "multiRepoExplorer3",
                     "name": "Workspace Folder",
                     "icon": "$(repo)",
-                    "when": "gitWorkspaceManager.view3.hasFolder"
+                    "when": "multiRepoWorkspaceExplorer.view3.hasFolder"
                 },
                 {
                     "id": "multiRepoExplorer4",
                     "name": "Workspace Folder",
                     "icon": "$(repo)",
-                    "when": "gitWorkspaceManager.view4.hasFolder"
+                    "when": "multiRepoWorkspaceExplorer.view4.hasFolder"
                 },
                 {
                     "id": "multiRepoExplorer5",
                     "name": "Workspace Folder",
                     "icon": "$(repo)",
-                    "when": "gitWorkspaceManager.view5.hasFolder"
+                    "when": "multiRepoWorkspaceExplorer.view5.hasFolder"
                 },
                 {
                     "id": "multiRepoExplorer6",
                     "name": "Workspace Folder",
                     "icon": "$(repo)",
-                    "when": "gitWorkspaceManager.view6.hasFolder"
+                    "when": "multiRepoWorkspaceExplorer.view6.hasFolder"
                 },
                 {
                     "id": "multiRepoExplorer7",
                     "name": "Workspace Folder",
                     "icon": "$(repo)",
-                    "when": "gitWorkspaceManager.view7.hasFolder"
+                    "when": "multiRepoWorkspaceExplorer.view7.hasFolder"
                 },
                 {
                     "id": "multiRepoExplorer8",
                     "name": "Workspace Folder",
                     "icon": "$(repo)",
-                    "when": "gitWorkspaceManager.view8.hasFolder"
+                    "when": "multiRepoWorkspaceExplorer.view8.hasFolder"
                 },
                 {
                     "id": "multiRepoExplorer9",
                     "name": "Workspace Folder",
                     "icon": "$(repo)",
-                    "when": "gitWorkspaceManager.view9.hasFolder"
+                    "when": "multiRepoWorkspaceExplorer.view9.hasFolder"
                 }
             ]
         },
         "commands": [
             {
-                "command": "gitWorkspaceManager.addToWorkspace",
+                "command": "multiRepoWorkspaceExplorer.addToWorkspace",
                 "title": "Add to Workspace",
                 "icon": "$(add)"
             },
             {
-                "command": "gitWorkspaceManager.removeFromWorkspace",
+                "command": "multiRepoWorkspaceExplorer.removeFromWorkspace",
                 "title": "Remove from Workspace",
                 "icon": "$(remove)"
             },
             {
-                "command": "gitWorkspaceManager.openInNewWindow",
-                "title": "Open in New Window",
-                "icon": "$(window)"
+                "command": "multiRepoWorkspaceExplorer.refreshActiveWorkspace",
+                "title": "Refresh Active Workspace",
+                "icon": "$(refresh)"
             },
             {
-                "command": "gitWorkspaceManager.refreshRepos",
+                "command": "multiRepoWorkspaceExplorer.openInNewWindow",
+                "title": "Open in New Window",
+                "icon": "$(link-external)"
+            },
+            {
+                "command": "multiRepoWorkspaceExplorer.refreshRepos",
                 "title": "Refresh Repositories",
                 "icon": "$(refresh)"
             },
             {
-                "command": "gitWorkspaceManager.newFile",
+                "command": "multiRepoWorkspaceExplorer.addToFavorites",
+                "title": "Add to Favorites...",
+                "icon": "$(star-empty)"
+            },
+            {
+                "command": "multiRepoWorkspaceExplorer.addToFavoritesInGroup",
+                "title": "Add to Favorites in Group..."
+            },
+            {
+                "command": "multiRepoWorkspaceExplorer.removeFromFavorites",
+                "title": "Remove from Favorites",
+                "icon": "$(star-full)"
+            },
+            {
+                "command": "multiRepoWorkspaceExplorer.createGroup",
+                "title": "New Group",
+                "icon": "$(new-folder)"
+            },
+            {
+                "command": "multiRepoWorkspaceExplorer.deleteGroup",
+                "title": "Delete Group"
+            },
+            {
+                "command": "multiRepoWorkspaceExplorer.renameGroup",
+                "title": "Rename Group"
+            },
+            {
+                "command": "multiRepoWorkspaceExplorer.moveToGroup",
+                "title": "Move to Group"
+            },
+            {
+                "command": "multiRepoWorkspaceExplorer.openAllInGroup",
+                "title": "Open All in New Workspace",
+                "icon": "$(link-external)"
+            },
+            {
+                "command": "multiRepoWorkspaceExplorer.replaceWorkspaceWithGroup",
+                "title": "Replace Current Workspace",
+                "icon": "$(window)"
+            },
+            {
+                "command": "multiRepoWorkspaceExplorer.refreshFavorites",
+                "title": "Refresh Favorites",
+                "icon": "$(refresh)"
+            },
+            {
+                "command": "multiRepoWorkspaceExplorer.cleanupFavorites",
+                "title": "Clean Up Invalid Entries"
+            },
+            {
+                "command": "multiRepoWorkspaceExplorer.newFile",
                 "title": "New File"
             },
             {
-                "command": "gitWorkspaceManager.newFolder",
+                "command": "multiRepoWorkspaceExplorer.newFolder",
                 "title": "New Folder"
             },
             {
-                "command": "gitWorkspaceManager.openToSide",
+                "command": "multiRepoWorkspaceExplorer.openToSide",
                 "title": "Open to the Side"
             },
             {
-                "command": "gitWorkspaceManager.renameFile",
+                "command": "multiRepoWorkspaceExplorer.renameFile",
                 "title": "Rename"
             },
             {
-                "command": "gitWorkspaceManager.deleteFile",
+                "command": "multiRepoWorkspaceExplorer.deleteFile",
                 "title": "Delete"
             },
             {
-                "command": "gitWorkspaceManager.cut",
+                "command": "multiRepoWorkspaceExplorer.cut",
                 "title": "Cut"
             },
             {
-                "command": "gitWorkspaceManager.copy",
+                "command": "multiRepoWorkspaceExplorer.copy",
                 "title": "Copy"
             },
             {
-                "command": "gitWorkspaceManager.paste",
+                "command": "multiRepoWorkspaceExplorer.paste",
                 "title": "Paste"
             },
             {
-                "command": "gitWorkspaceManager.copyPath",
+                "command": "multiRepoWorkspaceExplorer.copyPath",
                 "title": "Copy Path"
             },
             {
-                "command": "gitWorkspaceManager.copyRelativePath",
+                "command": "multiRepoWorkspaceExplorer.copyRelativePath",
                 "title": "Copy Relative Path"
             },
             {
-                "command": "gitWorkspaceManager.revealInFinder",
+                "command": "multiRepoWorkspaceExplorer.revealInFinder",
                 "title": "Reveal in Finder"
             },
             {
-                "command": "gitWorkspaceManager.openInTerminal",
-                "title": "Open in Integrated Terminal"
-            },
-            {
-                "command": "gitWorkspaceManager.findInFolder",
+                "command": "multiRepoWorkspaceExplorer.findInFolder",
                 "title": "Find in Folder..."
             },
             {
-                "command": "gitWorkspaceManager.compareWithSelected",
+                "command": "multiRepoWorkspaceExplorer.compareWithSelected",
                 "title": "Select for Compare"
             },
             {
-                "command": "gitWorkspaceManager.compareSelected",
+                "command": "multiRepoWorkspaceExplorer.compareSelected",
                 "title": "Compare with Selected"
             }
         ],
         "menus": {
             "view/title": [
                 {
-                    "command": "gitWorkspaceManager.refreshRepos",
+                    "command": "multiRepoWorkspaceExplorer.refreshRepos",
                     "when": "view == repoBrowser",
+                    "group": "navigation"
+                },
+                {
+                    "command": "multiRepoWorkspaceExplorer.refreshActiveWorkspace",
+                    "when": "view == activeWorkspace",
+                    "group": "navigation"
+                },
+                {
+                    "command": "multiRepoWorkspaceExplorer.refreshFavorites",
+                    "when": "view == favoriteRepos",
+                    "group": "navigation"
+                },
+                {
+                    "command": "multiRepoWorkspaceExplorer.createGroup",
+                    "when": "view == favoriteRepos",
                     "group": "navigation"
                 }
             ],
             "view/item/context": [
                 {
-                    "command": "gitWorkspaceManager.addToWorkspace",
+                    "command": "multiRepoWorkspaceExplorer.removeFromWorkspace",
+                    "when": "view == activeWorkspace && viewItem == activeWorkspaceRepo",
+                    "group": "inline"
+                },
+                {
+                    "command": "multiRepoWorkspaceExplorer.openInNewWindow",
+                    "when": "view == activeWorkspace && viewItem == activeWorkspaceRepo",
+                    "group": "navigation"
+                },
+                {
+                    "command": "multiRepoWorkspaceExplorer.addToWorkspace",
                     "when": "view == repoBrowser && viewItem == gitRepo",
                     "group": "inline"
                 },
                 {
-                    "command": "gitWorkspaceManager.openInNewWindow",
+                    "command": "multiRepoWorkspaceExplorer.addToFavorites",
+                    "when": "view == repoBrowser && viewItem =~ /Repo/",
+                    "group": "favorites"
+                },
+                {
+                    "command": "multiRepoWorkspaceExplorer.openInNewWindow",
                     "when": "view == repoBrowser && viewItem =~ /Repo/",
                     "group": "inline@2"
                 },
                 {
-                    "command": "gitWorkspaceManager.removeFromWorkspace",
+                    "command": "multiRepoWorkspaceExplorer.removeFromWorkspace",
                     "when": "view == repoBrowser && viewItem == activeRepo",
                     "group": "inline"
                 },
                 {
-                    "command": "gitWorkspaceManager.openInNewWindow",
+                    "command": "multiRepoWorkspaceExplorer.openInNewWindow",
                     "when": "view == repoBrowser && viewItem =~ /Repo/",
                     "group": "navigation"
                 },
                 {
-                    "command": "gitWorkspaceManager.newFile",
+                    "command": "multiRepoWorkspaceExplorer.addToWorkspace",
+                    "when": "view == favoriteRepos && viewItem == favoriteRepo",
+                    "group": "inline"
+                },
+                {
+                    "command": "multiRepoWorkspaceExplorer.openAllInGroup",
+                    "when": "view == favoriteRepos && viewItem == group",
+                    "group": "inline@1"
+                },
+                {
+                    "command": "multiRepoWorkspaceExplorer.replaceWorkspaceWithGroup",
+                    "when": "view == favoriteRepos && viewItem == group",
+                    "group": "inline"
+                },
+                {
+                    "command": "multiRepoWorkspaceExplorer.removeFromFavorites",
+                    "when": "view == favoriteRepos && viewItem == favoriteRepo",
+                    "group": "favorites"
+                },
+                {
+                    "command": "multiRepoWorkspaceExplorer.moveToGroup",
+                    "when": "view == favoriteRepos && viewItem == favoriteRepo",
+                    "group": "favorites"
+                },
+                {
+                    "command": "multiRepoWorkspaceExplorer.renameGroup",
+                    "when": "view == favoriteRepos && viewItem == group",
+                    "group": "groupActions"
+                },
+                {
+                    "command": "multiRepoWorkspaceExplorer.deleteGroup",
+                    "when": "view == favoriteRepos && viewItem == group",
+                    "group": "groupActions"
+                },
+                {
+                    "command": "multiRepoWorkspaceExplorer.openInNewWindow",
+                    "when": "view == favoriteRepos && viewItem == favoriteRepo",
+                    "group": "navigation"
+                },
+                {
+                    "command": "multiRepoWorkspaceExplorer.newFile",
                     "when": "view =~ /^multiRepoExplorer/",
                     "group": "1_creation"
                 },
                 {
-                    "command": "gitWorkspaceManager.newFolder",
+                    "command": "multiRepoWorkspaceExplorer.newFolder",
                     "when": "view =~ /^multiRepoExplorer/",
                     "group": "1_creation"
                 },
                 {
-                    "command": "gitWorkspaceManager.openToSide",
+                    "command": "multiRepoWorkspaceExplorer.openToSide",
                     "when": "view =~ /^multiRepoExplorer/ && viewItem == file",
                     "group": "navigation"
                 },
                 {
-                    "command": "gitWorkspaceManager.cut",
+                    "command": "multiRepoWorkspaceExplorer.cut",
                     "when": "view =~ /^multiRepoExplorer/ && viewItem =~ /^(file|folder)$/",
                     "group": "5_cutcopypaste"
                 },
                 {
-                    "command": "gitWorkspaceManager.copy",
+                    "command": "multiRepoWorkspaceExplorer.copy",
                     "when": "view =~ /^multiRepoExplorer/ && viewItem =~ /^(file|folder)$/",
                     "group": "5_cutcopypaste"
                 },
                 {
-                    "command": "gitWorkspaceManager.paste",
+                    "command": "multiRepoWorkspaceExplorer.paste",
                     "when": "view =~ /^multiRepoExplorer/ && viewItem == folder",
                     "group": "5_cutcopypaste"
                 },
                 {
-                    "command": "gitWorkspaceManager.copyPath",
+                    "command": "multiRepoWorkspaceExplorer.copyPath",
                     "when": "view =~ /^multiRepoExplorer/ && viewItem =~ /^(file|folder)$/",
                     "group": "6_copypath"
                 },
                 {
-                    "command": "gitWorkspaceManager.copyRelativePath",
+                    "command": "multiRepoWorkspaceExplorer.copyRelativePath",
                     "when": "view =~ /^multiRepoExplorer/ && viewItem =~ /^(file|folder)$/",
                     "group": "6_copypath"
                 },
                 {
-                    "command": "gitWorkspaceManager.renameFile",
+                    "command": "multiRepoWorkspaceExplorer.renameFile",
                     "when": "view =~ /^multiRepoExplorer/ && viewItem =~ /^(file|folder)$/",
                     "group": "7_modification"
                 },
                 {
-                    "command": "gitWorkspaceManager.deleteFile",
+                    "command": "multiRepoWorkspaceExplorer.deleteFile",
                     "when": "view =~ /^multiRepoExplorer/ && viewItem =~ /^(file|folder)$/",
                     "group": "7_modification"
                 },
                 {
-                    "command": "gitWorkspaceManager.revealInFinder",
+                    "command": "multiRepoWorkspaceExplorer.revealInFinder",
                     "when": "view =~ /^multiRepoExplorer/ && viewItem =~ /^(file|folder)$/",
                     "group": "8_reveal"
                 },
                 {
-                    "command": "gitWorkspaceManager.openInTerminal",
-                    "when": "view =~ /^multiRepoExplorer/ && viewItem == folder",
-                    "group": "8_reveal"
-                },
-                {
-                    "command": "gitWorkspaceManager.findInFolder",
+                    "command": "multiRepoWorkspaceExplorer.findInFolder",
                     "when": "view =~ /^multiRepoExplorer/ && viewItem == folder",
                     "group": "4_search"
                 },
                 {
-                    "command": "gitWorkspaceManager.compareWithSelected",
+                    "command": "multiRepoWorkspaceExplorer.compareWithSelected",
                     "when": "view =~ /^multiRepoExplorer/ && viewItem == file",
                     "group": "3_compare"
                 },
                 {
-                    "command": "gitWorkspaceManager.compareSelected",
+                    "command": "multiRepoWorkspaceExplorer.compareSelected",
                     "when": "view =~ /^multiRepoExplorer/ && viewItem == file",
                     "group": "3_compare"
                 }
@@ -310,52 +436,52 @@
         },
         "keybindings": [
             {
-                "command": "gitWorkspaceManager.renameFile",
+                "command": "multiRepoWorkspaceExplorer.renameFile",
                 "key": "f2",
                 "when": "listFocus && focusedView =~ /^multiRepoExplorer/ && !inputFocus"
             },
             {
-                "command": "gitWorkspaceManager.deleteFile",
+                "command": "multiRepoWorkspaceExplorer.deleteFile",
                 "key": "delete",
                 "when": "listFocus && focusedView =~ /^multiRepoExplorer/ && !inputFocus && isWindows"
             },
             {
-                "command": "gitWorkspaceManager.deleteFile",
+                "command": "multiRepoWorkspaceExplorer.deleteFile",
                 "key": "delete",
                 "when": "listFocus && focusedView =~ /^multiRepoExplorer/ && !inputFocus && isLinux"
             },
             {
-                "command": "gitWorkspaceManager.deleteFile",
+                "command": "multiRepoWorkspaceExplorer.deleteFile",
                 "key": "cmd+backspace",
                 "when": "listFocus && focusedView =~ /^multiRepoExplorer/ && !inputFocus && isMac"
             },
             {
-                "command": "gitWorkspaceManager.copy",
+                "command": "multiRepoWorkspaceExplorer.copy",
                 "key": "ctrl+c",
                 "when": "listFocus && focusedView =~ /^multiRepoExplorer/ && !inputFocus && !isMac"
             },
             {
-                "command": "gitWorkspaceManager.copy",
+                "command": "multiRepoWorkspaceExplorer.copy",
                 "key": "cmd+c",
                 "when": "listFocus && focusedView =~ /^multiRepoExplorer/ && !inputFocus && isMac"
             },
             {
-                "command": "gitWorkspaceManager.cut",
+                "command": "multiRepoWorkspaceExplorer.cut",
                 "key": "ctrl+x",
                 "when": "listFocus && focusedView =~ /^multiRepoExplorer/ && !inputFocus && !isMac"
             },
             {
-                "command": "gitWorkspaceManager.cut",
+                "command": "multiRepoWorkspaceExplorer.cut",
                 "key": "cmd+x",
                 "when": "listFocus && focusedView =~ /^multiRepoExplorer/ && !inputFocus && isMac"
             },
             {
-                "command": "gitWorkspaceManager.paste",
+                "command": "multiRepoWorkspaceExplorer.paste",
                 "key": "ctrl+v",
                 "when": "listFocus && focusedView =~ /^multiRepoExplorer/ && !inputFocus && !isMac"
             },
             {
-                "command": "gitWorkspaceManager.paste",
+                "command": "multiRepoWorkspaceExplorer.paste",
                 "key": "cmd+v",
                 "when": "listFocus && focusedView =~ /^multiRepoExplorer/ && !inputFocus && isMac"
             }
@@ -372,7 +498,7 @@
         "test": "vscode-test"
     },
     "devDependencies": {
-        "@types/vscode": "^1.85.0",
+        "@types/vscode": "^1.89.0",
         "@types/mocha": "^10.0.6",
         "@types/node": "18.x",
         "@biomejs/biome": "^2.3.11",

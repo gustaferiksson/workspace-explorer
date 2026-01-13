@@ -1,4 +1,4 @@
-# Git Workspace Manager
+# Multi-Repo Workspace Explorer
 
 A VS Code extension that helps you manage multiple Git repositories in your workspace with an intuitive repository browser and individual workspace folder views.
 
@@ -20,7 +20,7 @@ A VS Code extension that helps you manage multiple Git repositories in your work
 
 1. Install the extension
 2. Open Settings (`Cmd+,` or `Ctrl+,`)
-3. Search for `Git Workspace Manager: Repo Paths`
+3. Search for `Multi-Repo Workspace Explorer: Repo Paths`
 4. Add base paths to scan for repositories (e.g., `~/Repos`, `/Users/username/Projects`)
 5. Click the folder-library icon in the Activity Bar to open the Repository Browser
 
