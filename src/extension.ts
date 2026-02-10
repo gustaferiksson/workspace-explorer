@@ -85,7 +85,7 @@ export function activate(context: vscode.ExtensionContext) {
                             'Remove Anyway',
                             'Cancel'
                         );
-                        
+
                         if (action !== 'Remove Anyway') {
                             return;
                         }
