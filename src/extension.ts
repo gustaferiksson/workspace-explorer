@@ -4,6 +4,9 @@ import * as path from 'node:path';
 import * as vscode from 'vscode';
 
 export function activate(context: vscode.ExtensionContext) {
+    // Set initial context for multi-folder workspace state
+    updateMultiFolderWorkspaceContext();
+
     // Repository browser for discovering and adding repos
     const repoBrowserProvider = new RepoBrowserProvider(context);
     const repoBrowserView = vscode.window.createTreeView('repoBrowser', {
@@ -67,15 +70,42 @@ export function activate(context: vscode.ExtensionContext) {
             'multiRepoWorkspaceExplorer.removeFromWorkspace',
             async (node: RepoNode | ActiveWorkspaceRepoNode) => {
                 if (node?.repoPath) {
-                    const folderIndex = vscode.workspace.workspaceFolders?.findIndex(
-                        (f) => f.uri.fsPath === node.repoPath
-                    );
-                    if (folderIndex !== undefined && folderIndex !== -1) {
-                        vscode.workspace.updateWorkspaceFolders(folderIndex, 1);
-                        repoBrowserProvider.refresh();
-                        activeWorkspaceProvider.refresh();
-                        vscode.window.showInformationMessage(`Removed ${node.label} from workspace`);
+                    const folders = vscode.workspace.workspaceFolders;
+                    if (!folders || folders.length === 0) return;
+
+                    const folderIndex = folders.findIndex((f) => f.uri.fsPath === node.repoPath);
+                    if (folderIndex === -1) return;
+
+                    // Removing the first folder will always cause VS Code to reload
+                    // This is a platform limitation we cannot work around
+                    if (folderIndex === 0 && folders.length > 1) {
+                        const action = await vscode.window.showWarningMessage(
+                            `Removing the first workspace folder will restart VS Code. To avoid this, remove other folders first, then remove this one last.`,
+                            { modal: true },
+                            'Remove Anyway',
+                            'Cancel'
+                        );
+                        
+                        if (action !== 'Remove Anyway') {
+                            return;
+                        }
                     }
+
+                    // Perform the removal
+                    vscode.workspace.updateWorkspaceFolders(folderIndex, 1);
+                    repoBrowserProvider.refresh();
+                    activeWorkspaceProvider.refresh();
+                    vscode.window.showInformationMessage(`Removed ${node.label} from workspace`);
+                }
+            }
+        ),
+
+        vscode.commands.registerCommand(
+            'multiRepoWorkspaceExplorer.replaceWorkspace',
+            async (node: RepoNode | ActiveWorkspaceRepoNode) => {
+                if (node?.repoPath) {
+                    const uri = vscode.Uri.file(node.repoPath);
+                    await vscode.commands.executeCommand('vscode.openFolder', uri, false);
                 }
             }
         ),
@@ -412,8 +442,18 @@ export function activate(context: vscode.ExtensionContext) {
         vscode.workspace.onDidChangeWorkspaceFolders(() => {
             repoBrowserProvider.refresh();
             activeWorkspaceProvider.refresh();
+            updateMultiFolderWorkspaceContext();
         })
     );
+}
+
+/**
+ * Updates the context key for whether we're in a multi-folder workspace.
+ * This is used to show/hide UI elements based on workspace state.
+ */
+function updateMultiFolderWorkspaceContext(): void {
+    const folderCount = vscode.workspace.workspaceFolders?.length ?? 0;
+    vscode.commands.executeCommand('setContext', 'multiRepoWorkspaceExplorer.isMultiFolderWorkspace', folderCount > 1);
 }
 
 class ActiveWorkspaceProvider implements vscode.TreeDataProvider<ActiveWorkspaceRepoNode> {

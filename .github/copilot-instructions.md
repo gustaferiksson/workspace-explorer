@@ -31,12 +31,29 @@ A VS Code extension that helps you manage multiple Git repositories in your work
 2. Browse your configured paths
 3. Click the `+` icon next to any repository to add it to your workspace
 
+**Note:** Adding the first or second repository will cause VS Code to reload (unavoidable platform behavior).
+
 ### Removing Repositories
 1. Find the repository in the Repository Browser (marked with "✓ In workspace")
 2. Click the `-` icon to remove it from your workspace
 
+**Note:** Removing the first folder will cause a reload. Users are warned before this happens.
+
 ### Opening in New Window
 - Click the window icon next to any repository to open it in a separate VS Code window
+
+## Important Technical Details
+
+### VS Code Workspace Reload Behavior
+The extension uses `vscode.workspace.updateWorkspaceFolders()` API which **will restart all extensions** in these cases:
+
+1. Adding the first workspace folder (empty → single-folder workspace)
+2. Adding the second workspace folder (single-folder → multi-root workspace)
+3. Removing or changing the first workspace folder (index 0)
+
+**Important:** There is NO workaround for case #3. VS Code will always reload when index 0 is modified because it needs to update the deprecated `rootPath` property. Any attempt to "swap" or "replace" folders still modifies index 0 and triggers a reload.
+
+The extension warns users before removing the first folder and suggests removing other folders first as a workaround.
 
 ## Configuration
 

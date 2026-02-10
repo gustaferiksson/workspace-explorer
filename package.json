@@ -2,7 +2,7 @@
     "name": "multi-repo-workspace-explorer",
     "displayName": "Multi-Repo Workspace Explorer",
     "description": "Manage git repositories in your workspace with a powerful repository browser",
-    "version": "0.0.8",
+    "version": "0.0.9",
     "publisher": "gustaferiksson",
     "author": "Gustaf Eriksson",
     "license": "MIT",
@@ -145,6 +145,11 @@
                 "command": "multiRepoWorkspaceExplorer.refreshActiveWorkspace",
                 "title": "Refresh Active Workspace",
                 "icon": "$(refresh)"
+            },
+            {
+                "command": "multiRepoWorkspaceExplorer.replaceWorkspace",
+                "title": "Replace Workspace",
+                "icon": "$(window)"
             },
             {
                 "command": "multiRepoWorkspaceExplorer.openInNewWindow",
@@ -293,6 +298,11 @@
                     "group": "inline"
                 },
                 {
+                    "command": "multiRepoWorkspaceExplorer.replaceWorkspace",
+                    "when": "view == activeWorkspace && viewItem == activeWorkspaceRepo && !multiRepoWorkspaceExplorer.isMultiFolderWorkspace",
+                    "group": "navigation"
+                },
+                {
                     "command": "multiRepoWorkspaceExplorer.openInNewWindow",
                     "when": "view == activeWorkspace && viewItem == activeWorkspaceRepo",
                     "group": "navigation"
@@ -301,6 +311,11 @@
                     "command": "multiRepoWorkspaceExplorer.addToWorkspace",
                     "when": "view == repoBrowser && viewItem == gitRepo",
                     "group": "inline"
+                },
+                {
+                    "command": "multiRepoWorkspaceExplorer.replaceWorkspace",
+                    "when": "view == repoBrowser && viewItem =~ /Repo/ && !multiRepoWorkspaceExplorer.isMultiFolderWorkspace",
+                    "group": "inline@1"
                 },
                 {
                     "command": "multiRepoWorkspaceExplorer.addToFavorites",
@@ -328,9 +343,19 @@
                     "group": "inline"
                 },
                 {
+                    "command": "multiRepoWorkspaceExplorer.replaceWorkspace",
+                    "when": "view == favoriteRepos && viewItem == favoriteRepo && !multiRepoWorkspaceExplorer.isMultiFolderWorkspace",
+                    "group": "inline@1"
+                },
+                {
+                    "command": "multiRepoWorkspaceExplorer.openInNewWindow",
+                    "when": "view == favoriteRepos && viewItem == favoriteRepo",
+                    "group": "inline@2"
+                },
+                {
                     "command": "multiRepoWorkspaceExplorer.openAllInGroup",
                     "when": "view == favoriteRepos && viewItem == group",
-                    "group": "inline@1"
+                    "group": "inline@2"
                 },
                 {
                     "command": "multiRepoWorkspaceExplorer.replaceWorkspaceWithGroup",
