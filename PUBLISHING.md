@@ -1,5 +1,17 @@
 # Publishing Guide
 
+## Quick Start (TL;DR)
+
+To publish a new version:
+```bash
+npm version patch     # Bumps version, creates commit & tag
+git push --tags       # Push everything to trigger GitHub Actions
+```
+
+That's it! GitHub Actions handles the rest.
+
+---
+
 ## Prerequisites
 
 1. **VS Code Marketplace Account**
@@ -81,19 +93,20 @@ vsce publish
 ### Manual Release Process
 
 ```bash
-# 1. Update version in package.json (e.g., 0.0.1 → 0.1.0)
+# 1. Update version and create release commit & tag
 npm version patch  # or minor, or major
+# This automatically:
+# - Updates version in package.json
+# - Creates a commit with message "0.0.10" (or whatever version)
+# - Creates a tag (e.g., v0.0.10)
 
-# 2. Update CHANGELOG.md with changes
+# 2. Update CHANGELOG.md with changes (optional but recommended)
+# Edit CHANGELOG.md and amend the commit if needed:
+git add CHANGELOG.md
+git commit --amend --no-edit
 
-# 3. Commit changes
-git add .
-git commit -m "Release v0.1.0"
-
-# 4. Create and push tag
-git tag v0.1.0
-git push origin main
-git push origin v0.1.0
+# 3. Push commit and tag
+git push && git push --tags
 
 # GitHub Actions will automatically:
 # - Build and compile the extension
