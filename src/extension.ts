@@ -136,11 +136,7 @@ end run`;
                         proc.stdin?.write(appleScript);
                         proc.stdin?.end();
                     } else {
-                        await vscode.commands.executeCommand(
-                            'vscode.openFolder',
-                            vscode.Uri.file(node.repoPath),
-                            true
-                        );
+                        await vscode.commands.executeCommand('vscode.openFolder', vscode.Uri.file(node.repoPath), true);
                     }
                 }
             }
