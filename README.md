@@ -6,7 +6,7 @@ A VS Code extension that helps you manage multiple Git repositories in your work
 
 ### Repository Browser
 - **Discover Repositories**: Automatically scans configured paths for Git repositories
-- **Organize by Folder**: Groups repositories by parent folder (e.g., `~/Repos/Gustaf`, `~/Repos/Plugsoftware`)
+- **Organize by Folder**: Groups repositories by parent folder 
 - **Quick Actions**: Add to workspace, remove from workspace, or open in new window with a single click
 - **Status Indicators**: See which repositories are currently active in your workspace
 
@@ -63,13 +63,3 @@ Due to VS Code platform limitations, certain operations will cause the window to
 **Workaround for removals:** When cleaning up your workspace, remove folders from bottom to top to minimize reloads. Only the first folder triggers a reload when removed.
 
 Please report other issues on [GitHub](https://github.com/gustaferiksson/workspace-explorer/issues).
-
-## Release Notes
-
-### 0.0.1
-
-Initial release with:
-- Repository browser with path scanning
-- Dynamic workspace folder views
-- Add/remove repositories from workspace
-- Open repositories in new window

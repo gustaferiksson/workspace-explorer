@@ -24,7 +24,7 @@
         "multi-root",
         "explorer"
     ],
-    "activationEvents": [],
+    "activationEvents": ["onStartupFinished"],
     "main": "./out/extension.js",
     "contributes": {
         "configuration": {
@@ -37,6 +37,11 @@
                     "items": {
                         "type": "string"
                     }
+                },
+                "multiRepoWorkspaceExplorer.useNativeWindowTabs": {
+                    "type": "boolean",
+                    "default": false,
+                    "markdownDescription": "Open repos in a new native window tab instead of a separate window (macOS only). Requires **View > Appearance > Show Tab Bar** to be enabled in VS Code.\n\n> **⚠️ NOTE:** This feature uses **AppleScript (`osascript`)** to click the *Window > New Tab* menu item. This executes a shell script as part of normal extension operation and may be **blocked by MDM profiles, corporate security policies, or macOS privacy settings**. Only enable this if you understand and accept that behaviour."
                 }
             }
         },

@@ -1,4 +1,4 @@
-import { execSync } from 'node:child_process';
+import { execSync, spawn } from 'node:child_process';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import * as vscode from 'vscode';
@@ -114,8 +114,34 @@ export function activate(context: vscode.ExtensionContext) {
             'multiRepoWorkspaceExplorer.openInNewWindow',
             async (node: RepoNode | ActiveWorkspaceRepoNode) => {
                 if (node?.repoPath) {
-                    const uri = vscode.Uri.file(node.repoPath);
-                    await vscode.commands.executeCommand('vscode.openFolder', uri, true);
+                    const config = vscode.workspace.getConfiguration('multiRepoWorkspaceExplorer');
+                    const useNativeTabs = config.get<boolean>('useNativeWindowTabs', false);
+
+                    if (useNativeTabs) {
+                        const codeCliPath = path.join(vscode.env.appRoot, 'bin', 'code');
+                        const appleScript = `on run argv
+    set repoPath to item 1 of argv
+    set cliPath to item 2 of argv
+    tell application "System Events"
+        tell process "Code"
+            click menu item "New Tab" of menu "Window" of menu bar 1
+        end tell
+    end tell
+    delay 0
+    do shell script (quoted form of cliPath) & " --reuse-window " & quoted form of repoPath
+end run`;
+                        const proc = spawn('osascript', ['-', node.repoPath, codeCliPath], {
+                            stdio: ['pipe', 'ignore', 'ignore'],
+                        });
+                        proc.stdin?.write(appleScript);
+                        proc.stdin?.end();
+                    } else {
+                        await vscode.commands.executeCommand(
+                            'vscode.openFolder',
+                            vscode.Uri.file(node.repoPath),
+                            true
+                        );
+                    }
                 }
             }
         ),
