@@ -12,6 +12,45 @@ That's it! GitHub Actions handles the rest.
 
 ---
 
+## Release runbook (for an automated agent)
+
+Deterministic steps to cut and verify a release. Run from the repo root on a clean `main`.
+
+**Preconditions** (fail fast if not met):
+- `git status --porcelain` is empty and the branch is `main`, fully pushed.
+- The repo has a `VSCE_PAT` Actions secret: `gh secret list | grep -q VSCE_PAT`.
+- `gh auth status` is logged in.
+
+**Release:**
+```bash
+npm version patch            # or minor / major — bumps package.json, commits "X.Y.Z", tags vX.Y.Z
+git push && git push --tags  # pushing the tag triggers .github/workflows/release.yml
+```
+
+**Watch the release workflow (non-zero exit ⇒ it failed):**
+```bash
+RUN=$(gh run list --workflow=release.yml --limit 1 --json databaseId -q '.[0].databaseId')
+gh run watch "$RUN" --exit-status || gh run view "$RUN" --log-failed
+```
+
+**Verify it actually published** (replace `VERSION`):
+```bash
+# Marketplace — indexing can lag ~1 min after the workflow goes green:
+curl -s 'https://marketplace.visualstudio.com/_apis/public/gallery/extensionquery' \
+  -H 'Accept: application/json;api-version=3.0-preview.1' -H 'Content-Type: application/json' \
+  -X POST --data '{"filters":[{"criteria":[{"filterType":7,"value":"gustaferiksson.multi-repo-workspace-explorer"}]}],"flags":914}' \
+  | python3 -c "import sys,json; e=json.load(sys.stdin)['results'][0]['extensions']; print(e[0]['versions'][0]['version'] if e else 'NOT FOUND')"
+
+# GitHub release + attached VSIX:
+gh release view "vVERSION"
+```
+
+**Gotchas:**
+- Only the **tag** push publishes; pushing to `main` alone just runs CI.
+- Publish failing with an auth error ⇒ the `VSCE_PAT` expired. Regenerate the Azure DevOps PAT (scope Marketplace → Manage) and update the secret.
+
+---
+
 ## Prerequisites
 
 1. **VS Code Marketplace Account**
